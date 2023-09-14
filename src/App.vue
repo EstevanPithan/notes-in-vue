@@ -1,7 +1,31 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+type Note = {
+  id: number;
+  description: string;
+  date: Date;
+  backgroundColor: string;
+}
+
 const showModal = ref(false);
+const newNote = ref("");
+const notes = ref<Note[]>([])
+
+const getRandomColor = () => {
+  return "hsl(" + Math.random() * 360 + " 100% 75%)";
+}
+
+const addNote = () => {
+  notes.value.push({
+    id: Math.floor(Math.random() * 1000000),
+    description: newNote.value,
+    date: new Date(),
+    backgroundColor: getRandomColor(),
+  })
+  showModal.value = false;
+  newNote.value = "";
+}
 
 </script>
 
@@ -9,15 +33,17 @@ const showModal = ref(false);
   <div v-if="showModal" class="overlay">
     <div class="modal">
       <label for="note">Type your note bellow</label>
-      <textarea name="note" id="note" cols="30" rows="10"></textarea>
-      <button class="add-note">Add note</button>
+      <textarea v-model="newNote" name="note" id="note" cols="30" rows="10"></textarea>
+      <button @click="addNote" class="add-note">Add note</button>
       <button @click="showModal = false" class="close-modal">Close</button>
     </div>
   </div>
+
+
   <div class="container">
     <header>
       <h1>
-        NOTES {{ showModal }}
+        NOTES
       </h1>
       <button @click="showModal = true" title="Click here to add a new note">
         +
@@ -26,17 +52,12 @@ const showModal = ref(false);
 
     <main>
       <div class="card-container">
-        <div class="card">
+        <div :key="note.id" :style="{ backgroundColor: note.backgroundColor }" v-for="note in  notes " class="card">
           <p class="main-text">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic, mollitia saepe dolores odio numquam voluptatibus
-            amet minus reprehenderit nihil dicta? Esse at ea voluptatibus non nam, necessitatibus alias provident
-            quibusdam.
-            Recusandae praesentium odit cum tempora nisi molestiae assumenda porro aliquam vitae aperiam ut quis,
-            voluptatem
-            impedit libero beatae! Temporibus, ab?
+            {{ note.description }}
           </p>
           <p class="date">
-            14/08/2023
+            {{ note.date.toLocaleDateString() }}
           </p>
         </div>
       </div>
@@ -89,7 +110,6 @@ main {
 .card {
   width: 20%;
   height: 40%;
-  background-color: blueviolet;
   border: 1px solid black;
   border-radius: 16px;
   padding: 1rem;
