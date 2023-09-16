@@ -9,8 +9,10 @@ type Note = {
 }
 
 const showModal = ref(false);
+const isNewNote = ref(true);
 const newNote = ref("");
 const notes = ref<Note[]>([])
+const noteIdToEdit = ref(0)
 
 const getRandomColor = () => {
   return "hsl(" + Math.random() * 360 + " 100% 75%)";
@@ -27,6 +29,29 @@ const addNote = () => {
   newNote.value = "";
 }
 
+const saveNote = () => {
+  let note = notes.value[notes.value.findIndex((note) => note.id === noteIdToEdit.value)]
+  note.description = newNote.value;
+  note.date = new Date();
+
+  showModal.value = false;
+  newNote.value = "";
+  isNewNote.value = true;
+}
+
+const removeNote = (key: number) => {
+  notes.value.splice(notes.value.findIndex((note) => { note.id === key }) - 1, 1);
+}
+
+const editNote = (key: number) => {
+  let note = notes.value[notes.value.findIndex((note) => note.id === key)];
+  newNote.value = note.description;
+  noteIdToEdit.value = note.id;
+  showModal.value = true;
+  isNewNote.value = false;
+}
+
+
 </script>
 
 <template>
@@ -34,11 +59,11 @@ const addNote = () => {
     <div class="modal">
       <label for="note">Type your note bellow</label>
       <textarea v-model="newNote" name="note" id="note" cols="30" rows="10"></textarea>
-      <button @click="addNote" class="add-note">Add note</button>
-      <button @click="showModal = false" class="close-modal">Close</button>
+      <button v-if="isNewNote" @click="addNote" class="add-note">Add note</button>
+      <button v-if="!isNewNote" @click="saveNote" class="add-note">Save note</button>
+      <button @click="showModal = false; newNote = ''" class="close-modal">Close</button>
     </div>
   </div>
-
 
   <div class="container">
     <header>
@@ -52,12 +77,21 @@ const addNote = () => {
 
     <main>
       <div class="card-container">
-        <div :key="note.id" :style="{ backgroundColor: note.backgroundColor }" v-for="note in  notes " class="card">
+        <div v-for="note in  notes " :key="note.id" :style="{ backgroundColor: note.backgroundColor }" class="card">
           <p class="main-text">
             {{ note.description }}
           </p>
           <p class="date">
             {{ note.date.toLocaleDateString() }}
+            <span class="icons-wrapper">
+              -
+              <button @click="removeNote(note.id)" title="Remove note">
+                <i class="uil uil-trash-alt"></i>
+              </button>
+              <button @click="editNote(note.id)" title="Edit note">
+                <i class="uil uil-clipboard-alt"></i>
+              </button>
+            </span>
           </p>
         </div>
       </div>
@@ -116,6 +150,14 @@ main {
   margin: 0 1rem 1rem 0;
 }
 
+.card:hover {
+  opacity: 0.5;
+}
+
+.card:hover .icons-wrapper {
+  display: flex;
+}
+
 .card-container {
   display: flex;
   align-items: flex-start;
@@ -126,7 +168,27 @@ main {
 .date {
   width: 100%;
   text-align: right;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  transition: 400ms ease-in-out 0s;
+}
+
+.icons-wrapper {
+  font-size: 20px;
+  display: none;
+  transition: 400ms ease-in-out 0s;
+}
+
+.icons-wrapper button {
+  background-color: transparent;
+  border: none;
+  font-size: 20px;
+}
+
+.icons-wrapper button:hover {
+  background-color: transparent;
 }
 
 .overlay {
